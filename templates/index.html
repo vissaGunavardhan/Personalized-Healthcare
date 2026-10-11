@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HealthVault & ABDM Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- Hero Section -->
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-8 md:p-12 shadow-xl shadow-teal-950/10">
+    <div class="relative z-10 max-w-3xl space-y-4">
+      <div class="inline-flex items-center space-x-2 bg-teal-500/20 text-teal-200 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm border border-teal-400/30">
+        <i class="fa-solid fa-shield-halved text-teal-300"></i>
+        <span>Ayushman Bharat Digital Mission (ABDM) Integrated</span>
+      </div>
+      
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight" data-i18n="hero_title">
+        Unified Digital Health Vault & ABDM Portal
+      </h1>
+      
+      <p class="text-teal-100/90 text-sm sm:text-base leading-relaxed" data-i18n="hero_subtitle">
+        Your intelligent personal health cockpit. Understand clinical lab reports instantly, access your official ABDM ABHA Card, and manage digital health regimes in your preferred language.
+      </p>
+
+      <!-- Quick Action Buttons -->
+      <div class="pt-4 flex flex-wrap gap-3">
+        <a href="{{ url_for('ocr_page') }}" class="px-5 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-teal-500/30 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-file-waveform"></i>
+          <span>Scan Lab Report (OCR)</span>
+        </a>
+        <a href="{{ url_for('abdm') }}" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur-md border border-white/20 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-address-card text-teal-300"></i>
+          <span>View Official ABHA Card</span>
+        </a>
+        <a href="{{ url_for('health_summary_page') }}" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur-md border border-white/20 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+          <span>Plain-Language Summary</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Decorative background elements -->
+    <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute right-16 top-12 opacity-10 hidden lg:block text-9xl">
+      <i class="fa-solid fa-heart-pulse"></i>
+    </div>
+  </div>
+
+  <!-- User Quick Status Cockpit (If logged in or guest) -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    
+    <!-- Card 1: ABHA Status -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-id-card"></i>
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs text-slate-500 font-medium">ABHA Health ID</div>
+        <div class="text-sm font-bold text-slate-900 truncate">
+          {{ current_user['abha_number'] if current_user else '14-8291-5021-9482' }}
+        </div>
+        <div class="text-[11px] text-teal-600 font-semibold flex items-center mt-0.5">
+          <i class="fa-solid fa-circle-check mr-1 text-[9px]"></i> Active & Verified
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Latest Vitals -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-heart-pulse"></i>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-medium">Blood Pressure / Pulse</div>
+        <div class="text-sm font-bold text-slate-900">
+          {% if stats['vitals'] %}
+            {{ stats['vitals']['systolic'] }}/{{ stats['vitals']['diastolic'] }} mmHg ({{ stats['vitals']['heart_rate'] }} bpm)
+          {% else %}
+            134/86 mmHg (74 bpm)
+          {% endif %}
+        </div>
+        <div class="text-[11px] text-slate-500 mt-0.5">Updated recently</div>
+      </div>
+    </div>
+
+    <!-- Card 3: Blood Sugar / HbA1c -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-droplet"></i>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-medium">Fasting Sugar</div>
+        <div class="text-sm font-bold text-slate-900">
+          {% if stats['vitals'] %}
+            {{ stats['vitals']['blood_glucose'] }} mg/dL
+          {% else %}
+            142 mg/dL
+          {% endif %}
+        </div>
+        <div class="text-[11px] text-amber-600 font-medium mt-0.5 flex items-center">
+          <i class="fa-solid fa-triangle-exclamation mr-1 text-[9px]"></i> Requires Diet Attention
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: ABDM Consents Linked -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-hospital-user"></i>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-medium">Linked Hospital Regimes</div>
+        <div class="text-sm font-bold text-slate-900">
+          {{ stats['consents_count'] or 2 }} Active Consents
+        </div>
+        <div class="text-[11px] text-teal-600 font-medium mt-0.5">
+          <a href="{{ url_for('abdm') }}" class="hover:underline">Manage permissions &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 6 Pillars Showcase Grid -->
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">Core Health Portal Capabilities</h2>
+        <p class="text-xs text-slate-500">Every feature designed for seamless patient accessibility and clinical accuracy.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Feature 1: OCR Report Scanner -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-file-waveform"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">1. Medical Report OCR</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Upload diagnostic blood tests, lipid panels, or OPD notes. Dual AI extraction automatically detects biomarkers, units, reference intervals, and flags abnormal numbers.
+          </p>
+        </div>
+        <div class="pt-4">
+          <a href="{{ url_for('ocr_page') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center space-x-1">
+            <span>Scan Medical Document</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature 2: Plain Language Summary -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">2. Plain-Language Summary</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Eliminates doctor jargon. Translates blood test metrics into everyday words, highlights why numbers matter, offers safe nutrition tips, and prepares questions for your doctor.
+          </p>
+        </div>
+        <div class="pt-4">
+          <a href="{{ url_for('health_summary_page') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center space-x-1">
+            <span>Read Simple Health Translation</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature 3: Unified Health Profile -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-id-card-clip"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">3. Unified Health Profile</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            One cockpit for your full medical history: recorded vitals, active prescriptions, drug allergies, chronic conditions, and emergency medical contact ID.
+          </p>
+        </div>
+        <div class="pt-4">
+          <a href="{{ url_for('profile_page') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center space-x-1">
+            <span>Open Health Profile</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature 4: Multi-Language Support -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-language"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">4. Multi-Language Accessibility</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Break language barriers. Access full interface and lab summaries in 6 Indian languages: English, हिन्दी (Hindi), తెలుగు (Telugu), தமிழ் (Tamil), বাংলা (Bengali), and मराठी (Marathi).
+          </p>
+        </div>
+        <div class="pt-4 flex items-center space-x-1.5">
+          <button class="lang-select-btn px-2 py-1 text-[11px] bg-slate-100 rounded hover:bg-teal-50 hover:text-teal-700" data-lang="hi">हिन्दी</button>
+          <button class="lang-select-btn px-2 py-1 text-[11px] bg-slate-100 rounded hover:bg-teal-50 hover:text-teal-700" data-lang="te">తెలుగు</button>
+          <button class="lang-select-btn px-2 py-1 text-[11px] bg-slate-100 rounded hover:bg-teal-50 hover:text-teal-700" data-lang="ta">தமிழ்</button>
+          <button class="lang-select-btn px-2 py-1 text-[11px] bg-slate-100 rounded hover:bg-teal-50 hover:text-teal-700" data-lang="en">EN</button>
+        </div>
+      </div>
+
+      <!-- Feature 5: ABDM Card & Regimes -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-address-card"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">5. ABDM Card & Regimes</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Generate and carry your official 14-digit ABHA Card with interactive 3D flip effect, scannable QR verification code, and ABDM consent regime manager.
+          </p>
+        </div>
+        <div class="pt-4">
+          <a href="{{ url_for('abdm') }}" class="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center space-x-1">
+            <span>Manage ABHA Card & Consent</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature 6: Authentication & Security -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-user-lock"></i>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">6. Secure Sign In & Quick Demo</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Sign in with email, mobile, or 14-digit ABHA number. Includes 1-click pre-configured demo patient profiles (Ramesh Kumar - Diabetic, Priya Sharma - General).
+          </p>
+        </div>
+        <div class="pt-4 flex items-center space-x-2">
+          <a href="{{ url_for('demo_login', profile='ramesh') }}" class="text-[11px] font-semibold px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100">
+            Demo Ramesh
+          </a>
+          <a href="{{ url_for('demo_login', profile='priya') }}" class="text-[11px] font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">
+            Demo Priya
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Quick Demo Callout Banner -->
+  <div class="p-6 rounded-2xl bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-stethoscope"></i>
+      </div>
+      <div>
+        <div class="font-bold text-slate-900 text-sm">Want to try a real lab report scan immediately?</div>
+        <div class="text-xs text-slate-600">You don't need a file right now. Click below to run the OCR scanner on a complete blood & metabolic lab panel.</div>
+      </div>
+    </div>
+    <div class="shrink-0 flex items-center space-x-3">
+      <a href="{{ url_for('ocr_page') }}" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-teal-600/20 transition-all flex items-center space-x-2">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Try Sample Lab Scan Now</span>
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

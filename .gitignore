@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Database files
+*.db
+*.sqlite3
+data/*.db
+
+# Environment Secrets
+.env
+.env.local
+
+# Temporary / scratch files
+scratch/
+uploads/*
+!uploads/.gitkeep

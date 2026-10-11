@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Report OCR - HealthVault{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- Section Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+    <div>
+      <div class="inline-flex items-center space-x-2 text-xs font-semibold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full mb-1">
+        <i class="fa-solid fa-brain"></i>
+        <span>Multimodal Vision & Algorithmic OCR Engine</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" data-i18n="ocr_title">
+        Medical Report OCR & Biomarker Scanner
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="ocr_desc">
+        Upload lab tests, diagnostic scans, or prescription documents. Our dual-layer AI instantly extracts numerical biomarkers, validates reference ranges, and flags abnormal metrics.
+      </p>
+    </div>
+
+    <!-- Quick Presets Pills -->
+    <div class="flex flex-wrap items-center gap-1.5">
+      <span class="text-xs font-semibold text-slate-400 mr-1" data-i18n="ocr_load_preset">Presets:</span>
+      <button class="preset-btn px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition-all" data-preset="cbc">
+        <i class="fa-solid fa-droplet text-rose-500 mr-1"></i> CBC Panel
+      </button>
+      <button class="preset-btn px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition-all" data-preset="diabetes">
+        <i class="fa-solid fa-dna text-teal-500 mr-1"></i> Diabetes / HbA1c
+      </button>
+      <button class="preset-btn px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition-all" data-preset="lipid">
+        <i class="fa-solid fa-heart-pulse text-amber-500 mr-1"></i> Lipid Profile
+      </button>
+      <button class="preset-btn px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition-all" data-preset="rft">
+        <i class="fa-solid fa-shield-virus text-blue-500 mr-1"></i> Kidney (RFT)
+      </button>
+      <button class="preset-btn px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700 transition-all" data-preset="thyroid">
+        <i class="fa-solid fa-flask text-purple-500 mr-1"></i> Thyroid (TSH)
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload & Scanner Stage -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Left Column: Document Upload & Laser Scanner Area -->
+    <div class="lg:col-span-5 space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        
+        <!-- Drag & Drop Zone -->
+        <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-teal-500 hover:bg-teal-50/50 transition-all cursor-pointer">
+          <input type="file" id="report-file-input" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden">
+          <div class="space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-2xl">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800" data-i18n="ocr_drag_drop">
+                Drag & drop your medical lab report image here, or browse files
+              </div>
+              <div class="text-[11px] text-slate-400 mt-1" data-i18n="ocr_supported_formats">
+                Supported formats: JPG, PNG, WEBP (Max 16 MB)
+              </div>
+            </div>
+            <button type="button" onclick="document.getElementById('report-file-input').click()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+              <i class="fa-solid fa-folder-open mr-1.5"></i> Select File from Device
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview & Laser Scanner Frame -->
+        <div id="preview-container" class="hidden space-y-3">
+          <div id="scanner-box" class="scanner-container bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center max-h-96 overflow-hidden">
+            <div class="scanner-laser"></div>
+            <img id="preview-image" src="" alt="Medical Report Preview" class="w-full h-auto object-contain max-h-96 opacity-95">
+          </div>
+          <div class="flex items-center justify-between">
+            <span id="scan-status-text" class="text-xs text-slate-500 font-medium">Document ready for OCR analysis</span>
+            <button type="button" onclick="OCRHandler.resetFile()" class="text-xs text-rose-600 hover:underline">
+              <i class="fa-solid fa-trash mr-1"></i> Remove File
+            </button>
+          </div>
+        </div>
+
+        <!-- Optional Clinical Notes -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Doctor / Patient Context Note (Optional):</label>
+          <input type="text" id="report-notes" placeholder="e.g. Fasting sample, cardiology follow-up, or suspected anemia" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+        </div>
+
+        <!-- Scan Action Button -->
+        <button id="btn-run-scan" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span data-i18n="ocr_btn_scan">Run Diagnostic OCR Scan</span>
+        </button>
+
+      </div>
+
+      <!-- Compliance & Accuracy Note -->
+      <div class="p-4 bg-teal-50/60 rounded-xl border border-teal-200 text-[11px] text-teal-800 space-y-1">
+        <div class="font-bold flex items-center space-x-1.5">
+          <i class="fa-solid fa-shield-halved text-teal-600"></i>
+          <span>Clinical Extraction Protocol</span>
+        </div>
+        <p class="text-teal-700 leading-relaxed">
+          The OCR engine parses biological reference intervals according to clinical standards. Always consult an authorized clinician before making changes to medication dosages.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Column: Extracted Biomarkers Table & Plain-Language Summary -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Placeholder when no report is yet scanned -->
+      <div id="ocr-results-card" class="hidden space-y-6">
+        
+        <!-- Metadata Header Card -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 id="report-title-display" class="font-black text-slate-900 text-lg">Report Title</h2>
+              <span id="report-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold">Normal</span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-3">
+              <span><i class="fa-solid fa-hospital mr-1 text-slate-400"></i> <span id="report-lab-display">Lab Name</span></span>
+              <span><i class="fa-solid fa-calendar mr-1 text-slate-400"></i> <span id="report-date-display">Date</span></span>
+            </div>
+          </div>
+
+          <a id="btn-view-full-summary" href="{{ url_for('health_summary_page') }}" class="px-4 py-2 bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200 font-bold text-xs rounded-xl transition-colors flex items-center space-x-1.5">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+            <span>View Full Plain Summary</span>
+          </a>
+        </div>
+
+        <!-- Biomarkers Extraction Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+              <i class="fa-solid fa-vial-circle-check text-teal-600"></i>
+              <span>Extracted Biological Biomarkers</span>
+            </div>
+            <span class="text-xs text-slate-400">Auto-Verified</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-4" data-i18n="table_parameter">Biomarker / Test</th>
+                  <th class="py-3 px-4" data-i18n="table_value">Result Value</th>
+                  <th class="py-3 px-4" data-i18n="table_range">Normal Range</th>
+                  <th class="py-3 px-4" data-i18n="table_status">Status</th>
+                  <th class="py-3 px-4" data-i18n="table_notes">What It Means</th>
+                </tr>
+              </thead>
+              <tbody id="biomarkers-table-body" class="divide-y divide-slate-100">
+                <!-- Dynamically populated via ocr_handler.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Inline Plain-Language Explainer -->
+        <div id="inline-summary-box" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 text-sm">Plain-Language Doctor Translation</div>
+              <div class="text-[11px] text-slate-500">No medical jargon — simple patient summary</div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed font-medium" id="summary-overview-text">
+            <!-- Populated via OCRHandler -->
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
+              <div class="text-xs font-bold text-amber-900 flex items-center space-x-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                <span data-i18n="summary_attention">What Needs Attention</span>
+              </div>
+              <ul id="summary-attention-list" class="space-y-1.5 text-xs text-amber-800"></ul>
+            </div>
+
+            <div class="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
+              <div class="text-xs font-bold text-emerald-900 flex items-center space-x-1.5">
+                <i class="fa-solid fa-apple-whole text-emerald-500"></i>
+                <span data-i18n="summary_lifestyle">Daily Nutrition & Tips</span>
+              </div>
+              <ul id="summary-lifestyle-list" class="space-y-1.5 text-xs text-emerald-800"></ul>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Default Initial Card before scanning -->
+      <div id="ocr-initial-placeholder" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl">
+          <i class="fa-solid fa-file-invoice"></i>
+        </div>
+        <div class="max-w-md mx-auto space-y-1">
+          <div class="font-bold text-slate-800 text-base">Ready to Extract Medical Biomarkers</div>
+          <div class="text-xs text-slate-500 leading-relaxed">
+            Upload your laboratory document or choose one of the pre-configured clinical panels at the top (CBC, Diabetes, Lipid, Renal, Thyroid) to see real-time OCR extraction in action.
+          </div>
+        </div>
+        <div class="pt-2">
+          <button type="button" onclick="OCRHandler.loadPreset('diabetes')" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-teal-600/20 transition-all">
+            <i class="fa-solid fa-play mr-1.5"></i> Test Sample Diabetic & Lipid Panel
+          </button>
+        </div>
+      </div>
+
+      <!-- Past Uploaded Reports History (If any) -->
+      {% if past_reports %}
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+            <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+            <span>Previously Saved Lab Reports</span>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {% for rep in past_reports %}
+              <div class="py-3 flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-slate-800">{{ rep['report_title'] }}</div>
+                  <div class="text-slate-400 text-[11px]">{{ rep['lab_name'] }} &bull; {{ rep['report_date'] }}</div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if rep['overall_status'] == 'Normal' %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                    {{ rep['overall_status'] }}
+                  </span>
+                  <a href="{{ url_for('health_summary_page', report_id=rep['id']) }}" class="text-teal-600 hover:underline font-semibold text-[11px]">
+                    View Summary &rarr;
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/ocr_handler.js') }}"></script>
+{% endblock %}

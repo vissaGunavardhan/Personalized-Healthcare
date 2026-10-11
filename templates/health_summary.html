@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Plain-Language Health Summary - HealthVault{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+    <div>
+      <div class="inline-flex items-center space-x-2 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full mb-1">
+        <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+        <span>Doctor-to-Human Clinical AI Translation</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" data-i18n="summary_title">
+        Plain-Language Health Explainer
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="summary_subtitle">
+        Doctor-to-Human translation of your medical tests into crystal-clear everyday words.
+      </p>
+    </div>
+
+    <!-- Live Regional Language Re-Translate Selector -->
+    <div class="flex items-center space-x-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+      <span class="text-xs font-semibold text-slate-500 ml-1">Translate summary to:</span>
+      <select id="select-summary-lang" class="text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-2.5 py-1.5 focus:outline-none">
+        <option value="English">English</option>
+        <option value="Hindi">हिन्दी (Hindi)</option>
+        <option value="Telugu">తెలుగు (Telugu)</option>
+        <option value="Tamil">தமிழ் (Tamil)</option>
+        <option value="Bengali">বাংলা (Bengali)</option>
+        <option value="Marathi">मराठी (Marathi)</option>
+      </select>
+      <button id="btn-retranslate" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition-colors">
+        <i class="fa-solid fa-rotate mr-1"></i> Translate
+      </button>
+    </div>
+  </div>
+
+  <!-- Big Picture Overview Card -->
+  <div class="bg-gradient-to-br from-white to-teal-50/30 p-6 sm:p-8 rounded-3xl border border-teal-200/80 shadow-md shadow-teal-900/5 space-y-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl shadow-md shadow-teal-600/30">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-900" data-i18n="summary_overview">Overall Health Snapshot</h2>
+          <div class="text-xs text-slate-500">
+            {{ report['report_title'] if report else 'Comprehensive Metabolic & Diabetic Lab Panel' }}
+            &bull; {{ report['report_date'] if report else 'Recent Checkup' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Urgency Badge -->
+      <div>
+        <span id="urgency-badge" class="px-3 py-1 rounded-full text-xs font-bold {% if summary and summary.get('urgency_level') == 'Urgent' %}bg-rose-100 text-rose-800 border border-rose-300{% elif summary and summary.get('urgency_level') == 'Follow-up Soon' %}bg-amber-100 text-amber-800 border border-amber-300{% else %}bg-emerald-100 text-emerald-800 border border-emerald-300{% endif %}">
+          <i class="fa-solid fa-bell mr-1"></i> {{ summary.get('urgency_level', 'Follow-up Soon') if summary else 'Routine' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Overview Text -->
+    <p id="summary-overview-paragraph" class="text-sm sm:text-base text-slate-700 leading-relaxed font-medium bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      {{ summary.get('overview', 'Your lab tests show good general organ health, but some glycemic indicators require lifestyle awareness.') if summary else 'All vital numbers are in order.' }}
+    </p>
+  </div>
+
+  <!-- Grid: What Needs Attention & Lifestyle Advice -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Card 1: What Needs Attention -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div class="flex items-center space-x-2 text-amber-700 font-bold text-sm">
+        <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <span data-i18n="summary_attention">What Needs Your Attention</span>
+      </div>
+
+      <ul id="summary-attention-container" class="space-y-3">
+        {% if summary and summary.get('attention_points') %}
+          {% for point in summary.get('attention_points') %}
+            <li class="flex items-start space-x-3 p-3 rounded-xl bg-amber-50/60 border border-amber-100 text-xs sm:text-sm text-slate-800 leading-relaxed">
+              <i class="fa-solid fa-circle-dot text-amber-500 mt-1 shrink-0 text-xs"></i>
+              <span>{{ point }}</span>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="p-3 text-xs text-slate-500">No elevated flags detected. All parameters in safe range.</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <!-- Card 2: Daily Nutrition & Lifestyle Advice -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div class="flex items-center space-x-2 text-emerald-700 font-bold text-sm">
+        <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+          <i class="fa-solid fa-apple-whole"></i>
+        </div>
+        <span data-i18n="summary_lifestyle">Daily Nutrition & Lifestyle Guidance</span>
+      </div>
+
+      <ul id="summary-lifestyle-container" class="space-y-3">
+        {% if summary and summary.get('lifestyle_tips') %}
+          {% for tip in summary.get('lifestyle_tips') %}
+            <li class="flex items-start space-x-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs sm:text-sm text-slate-800 leading-relaxed">
+              <i class="fa-solid fa-check text-emerald-600 mt-1 shrink-0 text-xs"></i>
+              <span>{{ tip }}</span>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="p-3 text-xs text-slate-500">Continue your balanced balanced diet and daily exercise routine.</li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Smart Doctor Questions (To Ask at Clinic) -->
+  <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-clipboard-question"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900" data-i18n="summary_questions">Questions to Ask Your Doctor</h3>
+          <p class="text-xs text-slate-500">Take these personalized questions with you to your next medical checkup.</p>
+        </div>
+      </div>
+
+      <button onclick="copyQuestions()" class="text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors flex items-center space-x-1.5">
+        <i class="fa-solid fa-copy"></i>
+        <span>Copy All Questions</span>
+      </button>
+    </div>
+
+    <div id="summary-questions-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+      {% if summary and summary.get('doctor_questions') %}
+        {% for q in summary.get('doctor_questions') %}
+          <div class="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between space-y-3">
+            <div class="text-xs text-slate-800 font-medium leading-relaxed">
+              &ldquo;{{ q }}&rdquo;
+            </div>
+            <div class="flex justify-end">
+              <button onclick="copyToClipboard('{{ q }}', 'Question copied!')" class="text-[11px] font-semibold text-purple-700 hover:text-purple-900 flex items-center space-x-1">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-span-3 p-4 text-xs text-slate-500 text-center">No specific clinical questions generated.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Biomarkers Breakdown Carousel / Cards -->
+  {% if biomarkers %}
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-vials text-teal-600"></i>
+          <span>Biomarkers in this Report</span>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">{{ biomarkers|length }} Parameters Analyzed</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {% for bio in biomarkers %}
+          <div class="p-3.5 rounded-xl border border-slate-100 bg-slate-50 flex flex-col justify-between space-y-2">
+            <div>
+              <div class="text-xs font-semibold text-slate-600 truncate">{{ bio.parameter }}</div>
+              <div class="text-lg font-black text-slate-900 mt-1">
+                {{ bio.value }} <span class="text-xs font-normal text-slate-500">{{ bio.unit }}</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-500 font-mono">{{ bio.ref_range }}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if bio.status == 'Normal' %}badge-status-normal{% elif bio.status == 'Borderline' %}badge-status-borderline{% else %}badge-status-high{% endif %}">
+                {{ bio.status }}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Copy questions helper
+  function copyQuestions() {
+    const list = [];
+    document.querySelectorAll('#summary-questions-container .text-slate-800').forEach(el => {
+      list.push(el.innerText.trim());
+    });
+    if (list.length > 0) {
+      copyToClipboard(list.join('\n\n'), 'All doctor questions copied!');
+    }
+  }
+
+  // Live Re-translation listener
+  const langSelect = document.getElementById('select-summary-lang');
+  const btnTranslate = document.getElementById('btn-retranslate');
+
+  if (btnTranslate) {
+    btnTranslate.addEventListener('click', () => {
+      const selectedLanguage = langSelect.value;
+      const rawBiomarkers = {{ biomarkers|tojson if biomarkers else '[]' }};
+      
+      btnTranslate.disabled = true;
+      btnTranslate.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Translating...';
+
+      fetch('/api/health-summary/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          biomarkers: rawBiomarkers,
+          language: selectedLanguage
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btnTranslate.disabled = false;
+        btnTranslate.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Translate';
+        if (data.success && data.summary) {
+          const s = data.summary;
+          document.getElementById('summary-overview-paragraph').innerText = s.overview || '';
+          
+          const attCont = document.getElementById('summary-attention-container');
+          attCont.innerHTML = '';
+          (s.attention_points || []).forEach(pt => {
+            const li = document.createElement('li');
+            li.className = "flex items-start space-x-3 p-3 rounded-xl bg-amber-50/60 border border-amber-100 text-xs sm:text-sm text-slate-800 leading-relaxed";
+            li.innerHTML = `<i class="fa-solid fa-circle-dot text-amber-500 mt-1 shrink-0 text-xs"></i><span>${pt}</span>`;
+            attCont.appendChild(li);
+          });
+
+          const lifeCont = document.getElementById('summary-lifestyle-container');
+          lifeCont.innerHTML = '';
+          (s.lifestyle_tips || []).forEach(tip => {
+            const li = document.createElement('li');
+            li.className = "flex items-start space-x-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs sm:text-sm text-slate-800 leading-relaxed";
+            li.innerHTML = `<i class="fa-solid fa-check text-emerald-600 mt-1 shrink-0 text-xs"></i><span>${tip}</span>`;
+            lifeCont.appendChild(li);
+          });
+
+          const qCont = document.getElementById('summary-questions-container');
+          qCont.innerHTML = '';
+          (s.doctor_questions || []).forEach(q => {
+            const div = document.createElement('div');
+            div.className = "p-4 rounded-2xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between space-y-3";
+            div.innerHTML = `
+              <div class="text-xs text-slate-800 font-medium leading-relaxed">&ldquo;${q}&rdquo;</div>
+              <div class="flex justify-end">
+                <button onclick="copyToClipboard('${q}', 'Question copied!')" class="text-[11px] font-semibold text-purple-700 hover:text-purple-900 flex items-center space-x-1">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            `;
+            qCont.appendChild(div);
+          });
+
+          showToast(`Health summary translated to ${selectedLanguage}!`, 'success');
+        } else {
+          showToast('Translation error occurred.', 'danger');
+        }
+      })
+      .catch(err => {
+        btnTranslate.disabled = false;
+        btnTranslate.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Translate';
+        showToast('Error: ' + err, 'danger');
+      });
+    });
+  }
+</script>
+{% endblock %}
